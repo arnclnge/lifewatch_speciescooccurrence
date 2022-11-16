@@ -57,3 +57,24 @@ df_long %>% filter(dph==1) %>% ggplot(aes(x = day_time, y = location_col, color 
                                                       "cod_DPH" = "Atlantic Cod (AT)",
                                                       "dol_DPH" = "Dolphins (PAM)")))
 ggsave(paste0(plot_loc,"dph_year.png"), device='png', dpi=500, width=13, height=7)
+
+#MAP STATIONS
+
+stn_list %>% 
+  ggplot(aes(x=longitude, y=latitude)) +
+  geom_polygon(data = bpns_fortified, aes(x = long, y = lat, group = group), fill="grey", alpha=3) +
+  geom_point(aes(x=longitude, y=latitude), size = 3)+
+  geom_text_repel(data=stn_list, aes(x=longitude, y=latitude, label=location_col), size=3.5)
+
+ggsave(paste0(plot_loc,"DPH_cod_summer2.png"), device='png')
+
+#PLOT DATA ACTIVITY
+#---visualize data availability
+df_merged$location_col[df_merged$location_col=="bpns-Cpowerreefballs-CPOD"] <- "bpns-Cpowerreefballs"
+df_merged$location_col[df_merged$location_col=="bpns-Belwindreefballs-CPOD"] <- "bpns-Belwindreefballs"
+
+df_merged %>% as.data.frame() %>% group_by(location_col,day_time) %>% summarise(detections=n()) %>% 
+  ggplot(aes(as.Date(day_time), location_col)) +
+  geom_point(size = 0.4)  + scale_x_date(date_labels = "%b-%Y")+
+  ggtitle("C-POD Network AT Data Availability") +  theme_bw()+theme(axis.text.y=element_text(size=12), axis.text.x=element_text(size=9), axis.title=element_blank())
+
