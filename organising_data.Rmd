@@ -134,7 +134,7 @@ library(readr)
 library(dplyr)
 library(data.table)
 
-detections <- read_csv("detections.csv")
+detections <- read_csv("csv/detections.csv")
 
 detections2 = detections %>% 
   group_by(location_col,year,month,day,hour) %>% 
