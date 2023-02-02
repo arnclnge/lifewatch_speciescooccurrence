@@ -4,20 +4,30 @@ install.packages("EcoSimR")
 
 library("cooccur")
 library("textshape")
-library("EcoSimR")
 library("tidyverse")
 
-df_merged = read_csv("DPH_final.csv")
+df_merged = read_csv("csv/DPH_final.csv")
 
-#filtered for at least 10 hours per station
+#FILTER DATAFRAME, both species must be present (any row with NAs removed) & a station must have more than 10 hours of DPH of both species
+location_sb10 = c("bpns-Belwindreefballs-CPOD","bpns-Birkenfels","bpns-Faulbaums","bpns-Gardencity","bpns-Nauticaena")
+location_cod10 = c("bpns-Cpowerreefballs-CPOD") #therefore no cooccurrence table 
+location_dol = c("bpns-Birkenfels","bpns-Buitenratel","bpns-Gardencity","bpns-Westhinder" )
+
+
+#SUMMARISE DATA PER MONTH
+x <- df_merged %>% filter(location_col %in% location_dol) %>% 
+  group_by(location_col, month) %>% summarise(dol=sum(na.omit((dol_DPH))), por=sum(na.omit((por_DPH))),  dol_por = sum(na.omit((cooccur_dol_por))))
+x <- gather(x, species, DPH, 3:5)
+x <- spread(x, month, DPH)
+
 #run code for each month
-df_cooccur <- df_merged %>%   filter(month == 12) %>% group_by(location_col) %>%
-                              summarise(Seabass = if_else(sum(na.omit(sb_DPH)) >= 10, 1,0),
-                                        Cod = if_else(sum(na.omit(cod_DPH)) >= 10, 1,0),
-                                        HarbourPorpoise = if_else(sum(na.omit(por_DPH)) >= 10, 1,0),
-                                        Dolphins = if_else(sum(na.omit(dol_DPH)) >= 10, 1,0))
+df_cooccur <- df_merged %>% group_by(location_col, month) %>%    # %>% filter(location_col %in% location_cod10)
+  summarise(Seabass = if_else(sum(na.omit(sb_DPH)) > 0, 1,0),
+            Cod = if_else(sum(na.omit(cod_DPH)) > 0, 1,0),
+            HarbourPorpoise = if_else(sum(na.omit(por_DPH)) > 0, 1,0),
+            Dolphins = if_else(sum(na.omit(dol_DPH)) > 0, 1,0)) %>% filter(month==12)
 
-df_cooccur <- column_to_rownames(df_cooccur, "location_col")
+df_cooccur <- column_to_rownames(df_cooccur, "location_col") %>% select(-month)
 df_cooccur <- t(df_cooccur)
 
 #---co-occur
@@ -46,14 +56,13 @@ plot(df_ecosim,type="cooc")
 library(tidyverse)
 library(hrbrthemes)
 
-cooccur_table <- read.csv("csv/cooccur_10hrfilter.csv", sep =";")
+cooccur_table <- read.csv("csv/cooccur.csv", sep =",")
 
 cooccur_table <- gather(cooccur_table, Month, Probability,JAN:DEC, factor_key=TRUE)
-  
-  # Viz
-  ggplot(cooccur_table, aes(Month, Species_Pair, fill= Probability)) + 
-  geom_tile() + scale_fill_gradient(low="yellow", high="blue") +
+
+# Viz
+ggplot(cooccur_table, aes(Month, Species_Pair, fill= Probability)) + 
+  geom_tile() + scale_fill_gradient(low="white", high="blue") +
   theme_minimal() + theme(axis.title = element_blank())
-  
-  ggsave("plots/cooccur.png", device='png', dpi = 300, width=8, height=3)
-  
+
+ggsave("plots/cooccur.png", device='png', dpi = 300, width=8, height=3)

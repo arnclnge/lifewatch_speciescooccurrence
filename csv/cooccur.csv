@@ -1,0 +1,7 @@
+﻿Species_Pair,JAN,FEB,MAR,APR,MAY,JUN,JUL,AUG,SEP,OCT,NOV,DEC
+Seabass & Cod,,,,,,,,,0.111,0.15,0.12,
+Seabass & Harbour Porpoise,0.36,,0.27,0.27,0.7,0.3,0.1,0.1,0.333,0.667,0.54,0.54
+Seabass & Dolphins,0.24,,,,,,,,0.111,0.148,0.36,0.18
+Cod & Harbour Porpoise,0.18,0.18,0.27,0.27,0.1,0.1,,,0.333,0.222,0.18,
+Cod & Dolphins,0.1,,,,,,,,0.111,,0.12,
+Harbour Porpoise & Dolphins,0.45,0.18,0.18,0.18,0.1,0.3,0.4,0.4,0.333,0.222,0.54,0.27

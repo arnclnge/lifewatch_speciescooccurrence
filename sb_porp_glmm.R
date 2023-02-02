@@ -2,8 +2,8 @@
 library(tidyverse)
 
 #### Read and format data ####
-setwd("C:/Ari/Cooccurrence/Thesis/Fish")
-df = read_csv("DPH_final.csv")
+setwd("~/lifewatch_speciescooccurrence/")
+df = read_csv("csv/DPH_final.csv")
 
 df_model = df %>% 
   select(
@@ -61,6 +61,8 @@ df_model_seabass = df_model %>%
   filter(sb_DPH == 1 & !is.na(por_DPH)) %>% 
   filter(location_col %in% location_sb10) %>% 
   mutate(cooc = ifelse(por_DPH == 1, 1, 0))
+
+#PLOT
 
 df_model_seabass %>% 
   ggplot(aes(day_time, as.factor(cooc))) +
@@ -131,7 +133,11 @@ drop1(glm_sb, test = "Chisq")
 
 df_output = df_model_seabass_short %>% 
   group_by(dielf,seasonf) %>% 
-  summarise()
+  summarise(DPH = n())
+
+#####GLM: BIAS-REDUCED
+library(brglm)
+glm_sb = brglm(cooc ~ dielf+seasonf, family = binomial(logit), data = df_model_seabass_short, method = "brglm.fit")
 
 # Get prediction and standard error in log scale
 pred.int = predict(glm_sb, df_output, se.fit = T)
@@ -151,15 +157,15 @@ df_output$seasonf <- recode_factor(df_output$seasonf,"September Equinox"  = "Aut
 # Plot output
 
 library(ggsignif)
-plotloc <- "C:/Workspace_2MA1/Thesis/Fish/plots/glmm/"
 
 df_output %>%
   ggplot() +
-  geom_pointrange(size = 1.2, aes(seasonf, y = fit, ymin = lwr, ymax = upr, colour = dielf), position=position_dodge(width=0.5)) +
-  scale_colour_manual(values = c("day" = "red", "night" = "blue")) +
-  ggtitle("Seabass & Harbour Porpoise") +
+  geom_pointrange(size = 1.2, aes(seasonf, y = fit, ymin = lwr, ymax = upr, colour = dielf), position=position_dodge(width=0.9)) +
+  scale_colour_manual(values = c("day" = "yellow", "night" = "blue")) +
+  ggtitle("European seabass & Harbour Porpoise") +theme_linedraw()+
   theme(axis.text.y=element_text(size=12), axis.text.x = element_text(face='bold', size = 9),plot.title = element_text(size=15, face='bold')) +
   labs(x = '', y = 'Probability of co-occurrence', colour = "Diel Factor")+
+  geom_text(aes(label = DPH, y = fit, x=seasonf),position = position_dodge(width=0.05), vjust=0) +
   geom_signif(data = df_output, aes(xmin = c('Winter'), xmax = c('Spring'), annotations = "*", y_position = 0.7),
     textsize = 4, , vjust = 0.5, manual = TRUE) +
   geom_signif(data = df_output, aes(xmin = c('Winter'), xmax = c('Summer'), annotations = "**", y_position = 0.73),
@@ -169,7 +175,7 @@ df_output %>%
   geom_signif(data = df_output, aes(xmin = c('Autumn'), xmax = c('Summer'), annotations = "**", y_position = 0.8),
               textsize = 4, , vjust = 0.5, manual = TRUE) 
 
-ggsave(paste0(plotloc,"sb_porp.png"), device='png', dpi=500, width=7, height=7)
+ggsave("plots/GLMM/sb_porp.png", device='png', dpi=500, width=6, height=7)
 
 
 

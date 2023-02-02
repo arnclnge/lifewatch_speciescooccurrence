@@ -19,7 +19,7 @@ df_dol <- df_dol %>%
   mutate(time = paste0(df_dol$Date," ",df_dol$Time,":00:00"))
 
 df_dol <- as.data.frame(df_dol)
-df_dol[,10] <- as.POSIXct(df_dol[,10], format = "%Y-%m-%d %H:%M:%S", tz="UTC")
+df_dol[,10] <- as.POSIXct(df_dol[,10], format = "%Y-%m-%d %H:%M:%S", tz="UTC") 
 df_dol <- subset(df_dol, select = -c(2,3,4,7,8,9))
 
 df_dol <- df_dol %>%

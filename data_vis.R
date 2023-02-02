@@ -23,10 +23,10 @@ detect <- detect %>% filter("2021-12-03" >= date_time)
 
 #recode station names
 detect$station_name <- recode(detect$station_name,"bpns-Cpowerreefballs-CPOD"="Cpowerreefballs",
-                                                  "bpns-Nauticaena" = "Nauticaena", "bpns-Grafton"="Grafton", "bpns-G-88" ="G-88",
-                                                  "bpns-Faulbaums" = "Faulbaums", "bpns-Westhinder" = "Westhinder", "bpns-Buitenratel" = "Buitenratel",
-                                                  "bpns-Fairplay" = "Fairplay", "bpns-Gardencity" = "Gardencity", "Belwindreefballs-CPOD"= "Belwindreefballs",
-                                                  "bpns-Birkenfels" = "Birkenfels")
+                              "bpns-Nauticaena" = "Nauticaena", "bpns-Grafton"="Grafton", "bpns-G-88" ="G-88",
+                              "bpns-Faulbaums" = "Faulbaums", "bpns-Westhinder" = "Westhinder", "bpns-Buitenratel" = "Buitenratel",
+                              "bpns-Fairplay" = "Fairplay", "bpns-Gardencity" = "Gardencity", "Belwindreefballs-CPOD"= "Belwindreefballs",
+                              "bpns-Birkenfels" = "Birkenfels")
 
 #########
 #DOT PLOT
@@ -43,16 +43,21 @@ df_plot = df %>%
     dol_DPH,
     cod_DPH) 
 
+df_plot$location_col <- recode(df_plot$location_col,"bpns-Cpowerreefballs"="Cpowerreefballs",
+                               "bpns-Nauticaena" = "Nauticaena", "bpns-Grafton"="Grafton", "bpns-G-88" ="G-88",
+                               "bpns-Faulbaums" = "Faulbaums", "bpns-Westhinder" = "Westhinder", "bpns-Buitenratel" = "Buitenratel",
+                               "bpns-Fairplay" = "Fairplay", "bpns-Gardencity" = "Gardencity", "bpns-Belwindreefballs"= "Belwindreefballs",
+                               "bpns-Birkenfels" = "Birkenfels")
+
 #convert df from wide to long
 df_long <- gather(as.data.frame(df_plot), species, dph,por_DPH:cod_DPH)
 df_long$day_time <- as.Date(df_long$day_time)
 
 #rename
 df_long$Season <- recode(df_long$Season, "December Solstice" = "Winter", "September Equinox" = "Autumn", "March Equinox"="Spring", "June Solstice"="Summer")
-df_long$location_col <- recode(df_long$location_col,"bpns-Belwindreefballs-CPOD"="bpns-Belwindreefballs","bpns-Cpowerreefballs-CPOD"="bpns-Cpowerreefballs")
 
 df_long %>% filter(dph==1) %>% ggplot(aes(x = day_time, y = location_col, color = Season))+
-  geom_point()+theme_bw()+theme(axis.title=element_blank(),strip.text.x = element_text(size = 15),axis.text.x=element_text(size =7, angle=20))+
+  geom_point()+theme_linedraw()+theme(axis.title=element_blank(),strip.text.x = element_text(size = 15),axis.text.x=element_text(size =7, angle=20))+
   scale_color_manual(values = c("Winter" = "steelblue",
                                 "Autumn"="deeppink",
                                 "Summer"="darkorange",
@@ -63,7 +68,7 @@ df_long %>% filter(dph==1) %>% ggplot(aes(x = day_time, y = location_col, color 
                                                       "dol_DPH" = "Dolphins (PAM)")))+
   scale_x_date(date_labels = "%b-%Y",date_breaks = "3 months")
 
-ggsave(paste0(plot_loc,"dph_year.png"), device='png', dpi=500, width=13, height=7)
+ggsave(paste0(plot_loc,"dph_year.png"), device='png', dpi=300, width=13, height=7)
 
 #############
 #MAP STATIONS
@@ -116,26 +121,30 @@ df$location_col[df$location_col=="bpns-Belwindreefballs-CPOD"] <- "bpns-Belwindr
 df$location_col <- fct_relevel(df$location_col, rev)
 
 df_activity <- df %>% group_by(location_col,day_time) %>% summarise(PAM = if_else((!is.na(por_DPH)|!is.na(dol_DPH)), 1,0),
-                                                  AT = if_else((!is.na(sb_DPH)|!is.na(cod_DPH)), 1,0))
+                                                                    AT = if_else((!is.na(sb_DPH)|!is.na(cod_DPH)), 1,0))
 
 #convert to long
-df_activity <- gather(df_activity, technique, activity, PAM:AT, factor_key=TRUE)
+df_activity <- gather(df_activity, technique, activity, PAM:AT, factor_key=TRUE) %>% filter(activity==1)
 
 df_activity %>% 
   ggplot(aes(as.Date(day_time), location_col, colour = technique)) +
   geom_point(size = 0.7)  + scale_x_date(date_labels = "%Y")+ 
   ggtitle("AT & PAM Data Availability") +theme(axis.text.y=element_text(size=12), axis.text.x=element_text(size=9), axis.title=element_blank())
 
+df_activity$location_col <- recode(df_activity$location_col, "bpns-Belwindreefballs"="Belwindreefballs","bpns-Cpowerreefballs"="Cpowerreefballs",
+                                   "bpns-Cpowerreefballs-CPOD"="Cpowerreefballs", "bpns-Nauticaena" = "Nauticaena", "bpns-G-88" ="G-88",
+                                   "bpns-Faulbaums" = "Faulbaums", "bpns-Westhinder" = "Westhinder", "bpns-Buitenratel" = "Buitenratel","bpns-Grafton"="Grafton",
+                                   "bpns-Gardencity" = "Gardencity", "Belwindreefballs-CPOD"= "Belwindreefballs", "bpns-Birkenfels" = "Birkenfels")
+
 ggplot(df_activity, aes(x = as.Date(day_time), y = location_col)) +
   geom_point(
-    aes(color = technique),
-    stat = "identity", position = position_dodge(0.8),
-    width = 0.7
-  ) +
+    aes(color=technique),
+    stat = "identity", position = position_dodge(0.8)) +
   scale_color_manual(values = c("#0073C2FF", "#EFC000FF"))+
-  scale_fill_manual(values = c("#0073C2FF", "#EFC000FF"))
+  scale_fill_manual(values = c("#0073C2FF", "#EFC000FF"))+
+  theme_linedraw()+theme(axis.title = element_blank())
 
-ggsave("plots/ATdata_availability.png", device='png', dpi =300)
+ggsave("plots/ATdata_availability.png", device='png', dpi =300, width=7, height=7)
 
 #############################
 #HEAT MAP of species detected
