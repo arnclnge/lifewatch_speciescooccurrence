@@ -84,10 +84,10 @@ library(ggspatial)
 
 stn_list <- read_csv("csv/stn_list.csv")
 stn_list$location_col <- recode(stn_list$location_col,"bpns-Cpowerreefballs-CPOD"="Cpowerreefballs",
-                              "bpns-Nauticaena" = "Nauticaena", "bpns-Grafton"="Grafton", "bpns-G-88" ="G-88",
-                              "bpns-Faulbaums" = "Faulbaums", "bpns-Westhinder" = "Westhinder", "bpns-Buitenratel" = "Buitenratel",
-                              "bpns-Fairplay" = "Fairplay", "bpns-Gardencity" = "Gardencity", "bpns-Belwindreefballs-CPOD"= "Belwindreefballs",
-                              "bpns-Birkenfels" = "Birkenfels")
+                                "bpns-Nauticaena" = "Nauticaena", "bpns-Grafton"="Grafton", "bpns-G-88" ="G-88",
+                                "bpns-Faulbaums" = "Faulbaums", "bpns-Westhinder" = "Westhinder", "bpns-Buitenratel" = "Buitenratel",
+                                "bpns-Fairplay" = "Fairplay", "bpns-Gardencity" = "Gardencity", "bpns-Belwindreefballs-CPOD"= "Belwindreefballs",
+                                "bpns-Birkenfels" = "Birkenfels")
 
 bpns <- readOGR( 
   dsn= "~/lifewatch_speciescooccurrence/shp/belgium_eez/", 

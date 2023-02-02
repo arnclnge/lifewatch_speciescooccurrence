@@ -10,22 +10,22 @@ location_dol = c("bpns-Birkenfels","bpns-Buitenratel","bpns-Gardencity","bpns-We
 
 Seasons <- c("September Equinox", "December Solstice", "March Equinox", "June Solstice")
 
-porObs <- df_merged %>% select(location_col, por_DPH,Season, hour) %>% filter(por_DPH == 1, location_col %in% location_sb10, Season==Seasons[1])
+porObs <- df_merged %>% select(location_col, por_DPH,Season, hour) %>% filter(por_DPH == 1, location_col %in% location_sb10) #filter(dol_DPH == 1, location_col %in% location_dol, Season==Seasons[1])
 porObs <- porObs[grepl("^NA", rownames(porObs))==F,]
 porObs$Time.rad <- (as.numeric(as.POSIXct(strptime(porObs$hour, format = "%H", tz = "UTC"))) - as.numeric(as.POSIXct(strptime("0", format = "%S", tz = "UTC")))) / 3600 * (pi/12)
 porObs<-na.omit(porObs)
 
-codObs <- df_merged %>% select(location_col, cod_DPH,Season, hour) %>% filter(cod_DPH == 1, location_col %in% location_cod10, Season==Seasons[1])
+codObs <- df_merged %>% select(location_col, cod_DPH,Season, hour) %>% filter(cod_DPH == 1, location_col %in% location_cod10)
 codObs <- codObs[grepl("^NA", rownames(codObs))==F,]
 codObs$Time.rad <- (as.numeric(as.POSIXct(strptime(codObs$hour, format = "%H", tz = "UTC"))) - as.numeric(as.POSIXct(strptime("0", format = "%S", tz = "UTC")))) / 3600 * (pi/12)
 codObs<-na.omit(codObs)
 
-sbObs <- df_merged %>% select(location_col, sb_DPH,Season, hour) %>% filter(sb_DPH == 1, location_col %in% location_sb10, Season==Seasons[2])
+sbObs <- df_merged %>% select(location_col, sb_DPH,Season, hour) %>% filter(sb_DPH == 1, location_col %in% location_sb10)
 sbObs <- sbObs[grepl("^NA", rownames(sbObs))==F,]
 sbObs$Time.rad <- (as.numeric(as.POSIXct(strptime(sbObs$hour, format = "%H", tz = "UTC"))) - as.numeric(as.POSIXct(strptime("0", format = "%S", tz = "UTC")))) / 3600 * (pi/12)
 sbObs<-na.omit(sbObs)
 
-dolObs <- df_merged %>% select(location_col,dol_DPH,Season, hour) %>% filter(dol_DPH == 1, location_col %in% location_dol, Season==Seasons[1])
+dolObs <- df_merged %>% select(location_col,dol_DPH,Season, hour) %>% filter(dol_DPH == 1, location_col %in% location_dol)
 dolObs <- dolObs[grepl("^NA", rownames(dolObs))==F,]
 dolObs<-na.omit(dolObs)
 dolObs$Time.rad <- (as.numeric(as.POSIXct(strptime(dolObs$hour, format = "%H", tz = "UTC"))) - as.numeric(as.POSIXct(strptime("0", format = "%S", tz = "UTC")))) / 3600 * (pi/12)
@@ -43,6 +43,7 @@ png("CP_cpower_autumn.jpeg",width=300, height=300, units="px")
 
 ###---------CALCULATION OF OVERLAP ESTIMATES-----------##
 
+#create empty data frames 
 overlapData2 <- data.frame()
 
 sp1 <- dolObs
@@ -62,9 +63,11 @@ for (y in 1:length(unique(df_merged$Season))){
           }}
   }
 
-colnames(overlapData2)[3] <- name
+#change for every species pair run
+colnames(overlapData2)[3] <- name 
+overlapData <- overlapData2 #RUN THIS ONLY ONCE TO CREATE BASE DATA FRAME; run line below from the 2nd time to merge data frames
 overlapData <- merge(overlapData, overlapData2, by = c("season","location_col"), all=TRUE)
 
-write_csv(overlapData,"csv/overlap_coef.csv")
+write_csv(overlapData,"csv/overlap_coef_stations.csv")
 
 
