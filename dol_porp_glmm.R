@@ -2,7 +2,7 @@
 library(tidyverse)
 
 #### Read and format data ####
-setwd("C:/Workspace_2MA1/Thesis/Fish")
+setwd("~/lifewatch_speciescooccurrence/")
 df_merged = read_csv("DPH_final.csv")
 
 df_model = df_merged %>% 
@@ -121,14 +121,17 @@ summary(glm_dol)
 drop1(glm_dol, test = "Chisq")
 #diel and season significant 
 
-#ONLY SEASONF & DIELF SIGNIFICANT
+#####GLM: BIAS-REDUCED
+library(brglm)
+glm_dol = brglm(cooc ~ dielf+seasonf, family = binomial(logit), data = df_model_dol_short, method = "brglm.fit")
+
 
 lme4::ranef(glmmint)
 
 
 df_output = df_model_dol_short %>% 
   group_by(seasonf,dielf) %>% 
-  summarise()
+  summarise(DPH = n())
 
 # Get prediction and standard error in log scale
 pred.int = predict(glm_dol, df_output, se.fit = T)
@@ -157,12 +160,13 @@ library(ggsignif)
 df_output %>%
   ggplot() +
   geom_pointrange(size = 1.2, aes(seasonf, y = fit, ymin = lwr, ymax = upr, colour=dielf), position=position_dodge(width=0.5)) +
-  scale_colour_manual(values = c("day" = "red", "night" = "blue")) +
-  ggtitle("Dolphins & Harbour Porpoise") +
+  scale_colour_manual(values = c("day" = "yellow", "night" = "blue")) +
+  ggtitle("Dolphins & Harbour Porpoise")  +theme_linedraw()+
   theme(axis.text.y=element_text(size=12), axis.text.x = element_text(face='bold', size =9),plot.title = element_text(size=15, face='bold')) +
   labs(x = '', y = 'Probability of co-occurrence',colour = "Diel Factor")+
+  geom_text(aes(label = DPH, y = fit, x=seasonf),position = position_dodge(width=0.05), vjust=0) +
   geom_signif(data = df_output, aes(xmin = c('Winter'), xmax = c('Spring'), annotations = "*", y_position = 1.05),
               textsize = 4, , vjust = 0.5, manual = TRUE)
 
-ggsave(paste0(plotloc,"dol_porp_final.png"), device='png', dpi=500, width=7, height=7)
+ggsave("plots/GLMM/dol_porp_glmm.png", device='png', dpi=500, width=6, height=7)
 
