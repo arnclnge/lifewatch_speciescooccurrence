@@ -68,7 +68,6 @@ ggsave(paste0(plot_loc,"dph_year.png"), device='png', dpi=500, width=13, height=
 #############
 #MAP STATIONS
 #############
-
 library(sf)
 library(rnaturalearth)
 library(rnaturalearthdata)
@@ -78,32 +77,41 @@ library(broom)
 library(maptools)
 library(ggspatial)
 
-world <- ne_countries(scale = "medium", returnclass = "sf")
-world_points<- st_centroid(world)
-world_points <- cbind(world, st_coordinates(st_centroid(world$geometry)))
-
 stn_list <- read_csv("csv/stn_list.csv")
-stn_list$location_col <- recode(stn_list$location_col,"bpns-Belwindreefballs-CPOD"="bpns-Belwindreefballs","bpns-Cpowerreefballs-CPOD"="bpns-Cpowerreefballs")
+stn_list$location_col <- recode(stn_list$location_col,"bpns-Cpowerreefballs-CPOD"="Cpowerreefballs",
+                              "bpns-Nauticaena" = "Nauticaena", "bpns-Grafton"="Grafton", "bpns-G-88" ="G-88",
+                              "bpns-Faulbaums" = "Faulbaums", "bpns-Westhinder" = "Westhinder", "bpns-Buitenratel" = "Buitenratel",
+                              "bpns-Fairplay" = "Fairplay", "bpns-Gardencity" = "Gardencity", "bpns-Belwindreefballs-CPOD"= "Belwindreefballs",
+                              "bpns-Birkenfels" = "Birkenfels")
 
 bpns <- readOGR( 
-  dsn= "~/lifewatch_network_analysis/shp/belgium_eez/", 
+  dsn= "~/lifewatch_speciescooccurrence/shp/belgium_eez/", 
   layer="eez",
   verbose=FALSE)
 bpns_fortified <- tidy(bpns, region = "geoname")
 
-ggplot(data=world) + geom_sf()+
+europe <- readOGR( 
+  dsn= "~/lifewatch_speciescooccurrence/shp/europe/", 
+  layer="Europe",
+  verbose=FALSE)
+eur_fortified <- tidy(europe, region = "NAME")
+
+#active stations
+
+ggplot()+
   geom_polygon(data = bpns_fortified, aes(x = long, y = lat, group = group), fill="lightblue", alpha=0.75)+
+  geom_polygon(data=eur_fortified, aes(x = long, y = lat, group = group), fill="lightgrey", colour="black")+
+  coord_cartesian(xlim = c(2.2, 3.45), ylim = c(51.05,51.9))+
   geom_point(data=stn_list, aes(x=longitude, y=latitude), size = 2, color="darkblue")+
-  geom_text_repel(data=stn_list, aes(x=longitude, y=latitude, label=location_col), size=2.5, color = "darkblue")+
-  coord_sf(xlim = c(2.1, 3.5), ylim = c(51.05,51.9), expand = FALSE)+theme_bw()+theme(axis.title = element_blank())+
-  #geom_text(data= world_points,aes(x=X, y=Y, label=name),color = "darkblue", fontface = "bold", check_overlap = FALSE)+
-  annotate(geom = "text", x = c(3, 4.3, 2.46), y = c(51.15, 51.75, 51.03), label = c("Be", "NL","FR"), size = 3) +
-  annotation_scale(location = "br", width_hint = 0.3) +
+  geom_text_repel(data=stn_list, aes(x=longitude, y=latitude, label=location_col), size=3, color = "darkblue")+
+  theme_classic()+theme(axis.title = element_blank())+
+  annotate(geom = "text", x = c(3.25, 4.4, 2.46), y = c(51.15, 51.5, 51.03), label = c("BE", "NL","FR"), size = 3) +
+  annotation_scale(location = "br", width_hint = 0.2) +
   annotation_north_arrow(location = "br", which_north = "true", 
                          pad_x = unit(0.3, "in"), pad_y = unit(0.2, "in"),
                          style = north_arrow_fancy_orienteering)
 
-ggsave("plots/cpod_stn_map.png", device='png', dpi =300)
+ggsave("plots/stations_map.png", device='png', dpi =300, width=6, height=6)
 
 ###################
 #PLOT DATA ACTIVITY
