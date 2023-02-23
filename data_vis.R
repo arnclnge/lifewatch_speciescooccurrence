@@ -1,7 +1,6 @@
 library(tidyverse)
 library(lubridate)
 library(dplyr)
-library(glatos) #R package for the Great Lakes Acoustic Telemetry
 library(tibble)
 library(readr)
 library(etn)
@@ -16,16 +15,14 @@ detections_merge <- read_csv("csv/DPH_cod_sb.csv")
 df_dol <- read_csv("csv/DPH_dolphins.csv")
 df_porpoise2 <- read_csv("csv/DPH_porpoise.csv")
 
-detect <- read_csv("csv/detect_cpod.csv")
-
-#filter study period 3 Dec 2021
-detect <- detect %>% filter("2021-12-03" >= date_time)
+#detect <- read_csv("csv/detect_cpod.csv")
+detect <- get_acoustic_detections(acoustic_project_code = "cpodnetwork", start_date ="2018-10-09", end_date = "2021-12-03")
 
 #recode station names
 detect$station_name <- recode(detect$station_name,"bpns-Cpowerreefballs-CPOD"="Cpowerreefballs",
                               "bpns-Nauticaena" = "Nauticaena", "bpns-Grafton"="Grafton", "bpns-G-88" ="G-88",
                               "bpns-Faulbaums" = "Faulbaums", "bpns-Westhinder" = "Westhinder", "bpns-Buitenratel" = "Buitenratel",
-                              "bpns-Fairplay" = "Fairplay", "bpns-Gardencity" = "Gardencity", "Belwindreefballs-CPOD"= "Belwindreefballs",
+                              "bpns-Fairplay" = "Fairplay", "bpns-Gardencity" = "Gardencity", "bpns-Belwindreefballs-CPOD"= "Belwindreefballs",
                               "bpns-Birkenfels" = "Birkenfels")
 
 #########
@@ -165,7 +162,7 @@ unique_fish <- detect %>% group_by(station_name,scientific_name) %>% summarise(n
 
 #add PAM data
 
-load("cpod_df_20180701_20220801_week_hourly.Rdata")
+load("cpod_df_20180701_20220801_week_hour.Rdata")
 cpod1_df <- as.data.frame(cpod1_df)
 cpod1_df[,2] <- as.POSIXct(cpod1_df[,2], format = "%Y-%m-%d %H:%M:%S", tz="UTC")
 
@@ -173,8 +170,8 @@ cpod1_df$station <- recode(cpod1_df$station,"bpns-Reefballs Belwind"="Belwindree
                            "bpns-Cpowerreefballs-CPOD"="Cpowerreefballs", "AP_bpns-Grafton" = "Grafton", 
                            "bpns-Nautica Ena" = "Nauticaena", "bpns-Grafton"="Grafton", "bpns-G88" ="G-88",
                            "bpns-Faulbaums" = "Faulbaums", "bpns-Westhinder" = "Westhinder", "bpns-Buitenratel" = "Buitenratel",
-                           "bpns-Gardencity" = "Gardencity", "Belwindreefballs-CPOD"= "Belwindreefballs",
-                           "bpns-Birkenfels" = "Birkenfels", "AP-bpns-Birkenfels"="Birkenfels", "AP-bpns-Belwind" = "Belwind", "AP-bpns-Cpower"="Cpowerreefballs")
+                           "bpns-Gardencity" = "Gardencity", "bpns-Reefballs belwind"= "Belwindreefballs",
+                           "bpns-Birkenfels" = "Birkenfels", "AP-bpns-Birkenfels"="Birkenfels", "AP-bpns-Belwind" = "Belwindreefballs", "AP-bpns-Cpower"="Cpowerreefballs")
 
 unique_cpod <- cpod1_df %>% group_by(station,species)  %>% summarise(no_individuals = NA, DPH = sum(dph)) %>% filter(species!="sonar") %>% as.data.frame()
 unique_cpod$species <- recode(unique_cpod$species, "NBHF"="Phocoena phocoena", "Dolphins" = "Delphinidae")
@@ -188,8 +185,8 @@ unique_fish$species <- fct_relevel(unique_fish$species, rev)
 unique_animals <- rbind(unique_fish, unique_cpod)
 
 ggplot(unique_animals, aes(station, species, fill= DPH)) + 
-  geom_tile() + scale_fill_gradient(low="yellow", high="blue", trans="log1p", breaks = c(1000000, 100000,10000,1000,100,10)) +
-  geom_text(aes(label = no_individuals))+
-  theme_linedraw() + theme(axis.text.x=element_text(size = 9, angle = 90),axis.text.y = element_text(face="italic"),axis.title = element_blank())  
+  geom_tile() + scale_fill_gradient(low="light blue", high="blue", trans="log1p", breaks = c(1000000, 100000,10000,1000,100,10)) +
+  geom_text(aes(label = no_individuals), size = 2)+
+  theme_classic() + theme(axis.text.x=element_text(size = 9, angle = 90,hjust=0.95,vjust=0.2),axis.text.y = element_text(face="italic"),axis.title = element_blank())  
 
 ggsave("plots/species_stations_heatmap.png", device='png', dpi = 300, width=13, height=7)
