@@ -4,7 +4,7 @@ Herein this repository were codes used to analyze species co-occurrence using av
 
 # Preparation of data
 
-a. Raw data was extracted from https://lifewatch.be/etn. Data used was uploaded in csv folder (PAM data: cpod_df_20180701_20220801_week_hour.Rdata & AT data: detections.csv)
+a. Raw data was extracted from https://lifewatch.be/etn
 
 b. Cleaning, organizing and merging of data is found in organising_data.Rmd. Hourly presence-absence matrices were made for each species which were then merged. This code results to the final data set used for the subsequent analyses. A distinction was made between true absence (DPH=0) and uncertainty of presence/absence (DPH = NA) by creating a dataframe of all hours when CPODs/receivers were both active and fish had active acoustic transmitters.
 
