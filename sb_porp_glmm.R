@@ -113,6 +113,8 @@ summary(glmmint)
 drop1(glmmint, test = "Chisq")
 lme4::ranef(glmmint)
 
+#all terms significant, but need to assess random affect by calculating ICC = (variance)/(variance+pi^2 / 3)
+
 df_output = df_model_seabass_short %>% 
   group_by(seasonf, dielf, statf) %>% 
   summarise()
@@ -162,20 +164,21 @@ df_output %>%
   ggplot() +
   geom_pointrange(size = 1.2, aes(seasonf, y = fit, ymin = lwr, ymax = upr, colour = dielf), position=position_dodge(width=0.9)) +
   scale_colour_manual(values = c("day" = "yellow", "night" = "blue")) +
-  ggtitle("European seabass & Harbour Porpoise") +theme_linedraw()+
+  ggtitle("European seabass & Harbour Porpoise") +theme_classic()+
   theme(axis.text.y=element_text(size=12), axis.text.x = element_text(face='bold', size = 9),plot.title = element_text(size=15, face='bold')) +
   labs(x = '', y = 'Probability of co-occurrence', colour = "Diel Factor")+
-  geom_text(aes(label = DPH, y = fit, x=seasonf),position = position_dodge(width=0.05), vjust=0) +
+  #geom_text(aes(label = DPH, y = fit, x=seasonf),position = position_dodge(width=0.05), vjust=0, size = 2) +
   geom_signif(data = df_output, aes(xmin = c('Winter'), xmax = c('Spring'), annotations = "*", y_position = 0.7),
-    textsize = 4, , vjust = 0.5, manual = TRUE) +
+    textsize = 4,vjust = 0.5, manual = TRUE) +
   geom_signif(data = df_output, aes(xmin = c('Winter'), xmax = c('Summer'), annotations = "**", y_position = 0.73),
-              textsize = 4, , vjust = 0.5, manual = TRUE) +
+              textsize = 4, vjust = 0.5, manual = TRUE) +
   geom_signif(data = df_output, aes(xmin = c('Autumn'), xmax = c('Spring'), annotations = "***", y_position = 0.77),
-              textsize = 4, , vjust = 0.5, manual = TRUE) +
+              textsize = 4, vjust = 0.5, manual = TRUE) +
   geom_signif(data = df_output, aes(xmin = c('Autumn'), xmax = c('Summer'), annotations = "**", y_position = 0.8),
-              textsize = 4, , vjust = 0.5, manual = TRUE) 
+              textsize = 4, vjust = 0.5, manual = TRUE) +
+  scale_y_continuous(limits = c(0,1))
 
-ggsave("plots/GLMM/sb_porp.png", device='png', dpi=500, width=6, height=7)
+ggsave("plots/GLMM/sb_porp1.png", device='png', dpi=500, width=6, height=7)
 
 
 

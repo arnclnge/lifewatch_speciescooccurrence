@@ -1,6 +1,6 @@
 library(overlap)
 library(tidyverse)
-setwd("~/lifewatch_speciescooccurrence/plots/")
+setwd("~/lifewatch_speciescooccurrence")
 df_merged <- as.data.frame(read_csv("csv/DPH_final.csv"))
 
 #filter stations > 10 hours
@@ -10,7 +10,7 @@ location_dol = c("bpns-Birkenfels","bpns-Buitenratel","bpns-Gardencity","bpns-We
 
 Seasons <- c("September Equinox", "December Solstice", "March Equinox", "June Solstice")
 
-porObs <- df_merged %>% select(location_col, por_DPH,Season, hour) %>% filter(por_DPH == 1, location_col %in% location_sb10) #filter(dol_DPH == 1, location_col %in% location_dol, Season==Seasons[1])
+porObs <- df_merged %>% select(location_col, por_DPH,Season, hour) %>% filter(por_DPH == 1, location_col %in% location_dol, Season==Seasons[1]) #filter(dol_DPH == 1, location_col %in% location_dol, Season==Seasons[1])
 porObs <- porObs[grepl("^NA", rownames(porObs))==F,]
 porObs$Time.rad <- (as.numeric(as.POSIXct(strptime(porObs$hour, format = "%H", tz = "UTC"))) - as.numeric(as.POSIXct(strptime("0", format = "%S", tz = "UTC")))) / 3600 * (pi/12)
 porObs<-na.omit(porObs)
@@ -25,7 +25,7 @@ sbObs <- sbObs[grepl("^NA", rownames(sbObs))==F,]
 sbObs$Time.rad <- (as.numeric(as.POSIXct(strptime(sbObs$hour, format = "%H", tz = "UTC"))) - as.numeric(as.POSIXct(strptime("0", format = "%S", tz = "UTC")))) / 3600 * (pi/12)
 sbObs<-na.omit(sbObs)
 
-dolObs <- df_merged %>% select(location_col,dol_DPH,Season, hour) %>% filter(dol_DPH == 1, location_col %in% location_dol)
+dolObs <- df_merged %>% select(location_col,dol_DPH,Season, hour) %>% filter(dol_DPH == 1, location_col %in% location_dol, Season==Seasons[1])
 dolObs <- dolObs[grepl("^NA", rownames(dolObs))==F,]
 dolObs<-na.omit(dolObs)
 dolObs$Time.rad <- (as.numeric(as.POSIXct(strptime(dolObs$hour, format = "%H", tz = "UTC"))) - as.numeric(as.POSIXct(strptime("0", format = "%S", tz = "UTC")))) / 3600 * (pi/12)

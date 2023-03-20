@@ -15,7 +15,7 @@ location_dol = c("bpns-Birkenfels","bpns-Buitenratel","bpns-Gardencity","bpns-We
 
 
 #SUMMARISE DATA PER MONTH
-x <- df_merged %>% filter(location_col %in% location_dol) %>% 
+x <- df_merged %>% #filter(location_col %in% location_dol) %>% 
   group_by(location_col, month) %>% summarise(dol=sum(na.omit((dol_DPH))), por=sum(na.omit((por_DPH))),  dol_por = sum(na.omit((cooccur_dol_por))))
 x <- gather(x, species, DPH, 3:5)
 x <- spread(x, month, DPH)
@@ -25,14 +25,14 @@ df_cooccur <- df_merged %>% group_by(location_col, month) %>%    # %>% filter(lo
   summarise(Seabass = if_else(sum(na.omit(sb_DPH)) > 0, 1,0),
             Cod = if_else(sum(na.omit(cod_DPH)) > 0, 1,0),
             HarbourPorpoise = if_else(sum(na.omit(por_DPH)) > 0, 1,0),
-            Dolphins = if_else(sum(na.omit(dol_DPH)) > 0, 1,0)) %>% filter(month==12)
+            Dolphins = if_else(sum(na.omit(dol_DPH)) > 0, 1,0)) %>% filter(month==2)
 
 df_cooccur <- column_to_rownames(df_cooccur, "location_col") %>% select(-month)
 df_cooccur <- t(df_cooccur)
 
 #---co-occur
 
-cooccur_df <- cooccur(mat = df_cooccur, type = "spp_site", thresh = TRUE, spp_names = TRUE)
+cooccur_df <- cooccur(mat = df_cooccur, type = "spp_site", thresh = FALSE, spp_names = TRUE)
 prob.table(cooccur_df)
 
 summary(cooccur_df)

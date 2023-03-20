@@ -16,7 +16,8 @@ df_dol <- read_csv("csv/DPH_dolphins.csv")
 df_porpoise2 <- read_csv("csv/DPH_porpoise.csv")
 
 #detect <- read_csv("csv/detect_cpod.csv")
-detect <- get_acoustic_detections(acoustic_project_code = "cpodnetwork", start_date ="2018-10-09", end_date = "2021-12-03")
+detect <- get_acoustic_detections(acoustic_project_code = "cpodnetwork", start_date ="2018-10-09", end_date = "2021-12-03") 
+deploy <- get_acoustic_deployments(acoustic_project_code = "cpodnetwork", open_only = FALSE)
 
 #recode station names
 detect$station_name <- recode(detect$station_name,"bpns-Cpowerreefballs-CPOD"="Cpowerreefballs",
@@ -24,6 +25,21 @@ detect$station_name <- recode(detect$station_name,"bpns-Cpowerreefballs-CPOD"="C
                               "bpns-Faulbaums" = "Faulbaums", "bpns-Westhinder" = "Westhinder", "bpns-Buitenratel" = "Buitenratel",
                               "bpns-Fairplay" = "Fairplay", "bpns-Gardencity" = "Gardencity", "bpns-Belwindreefballs-CPOD"= "Belwindreefballs",
                               "bpns-Birkenfels" = "Birkenfels")
+
+#check detections not within deploy period
+detect = as.data.frame(detect)
+detect$deploy_date_time = as.Date(deploy$deploy_date_time[match(detect$deployment_id,deploy$deployment_id)])
+detect$recover_date_time = as.Date(deploy$recover_date_time[match(detect$deployment_id,deploy$deployment_id)])
+detect_deploy_issues <- detect %>% mutate(within_deploy_recover_period = case_when(as.Date(date_time,"UTC") >= deploy_date_time  & 
+                                                                                     as.Date(date_time,"UTC") <= recover_date_time | is.na(recover_date_time)~ "YES", 
+                                                                                   TRUE ~ "NO")) %>% 
+  filter(within_deploy_recover_period=="NO")
+
+#remove detections outside of deployment period
+detect <- detect %>% mutate(within_deploy_recover_period = case_when(as.Date(date_time,"UTC") >= deploy_date_time  & 
+                                                                       as.Date(date_time,"UTC") <= recover_date_time | is.na(recover_date_time)~ "YES", 
+                                                                     TRUE ~ "NO")) %>% 
+  filter(within_deploy_recover_period=="YES")
 
 #########
 #DOT PLOT
@@ -120,9 +136,6 @@ ggsave("plots/stations_map.png", device='png', dpi =300, width=6, height=6)
 ###################
 
 #---visualize data availability
-df$location_col[df$location_col=="bpns-Cpowerreefballs-CPOD"] <- "bpns-Cpowerreefballs"
-df$location_col[df$location_col=="bpns-Belwindreefballs-CPOD"] <- "bpns-Belwindreefballs"
-
 df$location_col <- fct_relevel(df$location_col, rev)
 
 df_activity <- df %>% group_by(location_col,day_time) %>% summarise(PAM = if_else((!is.na(por_DPH)|!is.na(dol_DPH)), 1,0),
@@ -139,7 +152,11 @@ df_activity %>%
 df_activity$location_col <- recode(df_activity$location_col, "bpns-Belwindreefballs"="Belwindreefballs","bpns-Cpowerreefballs"="Cpowerreefballs",
                                    "bpns-Cpowerreefballs-CPOD"="Cpowerreefballs", "bpns-Nauticaena" = "Nauticaena", "bpns-G-88" ="G-88",
                                    "bpns-Faulbaums" = "Faulbaums", "bpns-Westhinder" = "Westhinder", "bpns-Buitenratel" = "Buitenratel","bpns-Grafton"="Grafton",
-                                   "bpns-Gardencity" = "Gardencity", "Belwindreefballs-CPOD"= "Belwindreefballs", "bpns-Birkenfels" = "Birkenfels")
+                                   "bpns-Gardencity" = "Gardencity", "bpns-Belwindreefballs-CPOD"= "Belwindreefballs", "bpns-Birkenfels" = "Birkenfels")
+
+#Table of hours of activity
+x <- df_activity %>% group_by(location_col) %>% summarise(PAM=sum(PAM), AT = sum(AT))
+write_csv(x, "csv/hours_activity_per_station.csv")
 
 ggplot(df_activity, aes(x = as.Date(day_time), y = location_col)) +
   geom_point(
@@ -151,9 +168,26 @@ ggplot(df_activity, aes(x = as.Date(day_time), y = location_col)) +
 
 ggsave("plots/ATdata_availability.png", device='png', dpi =300, width=7, height=7)
 
+################################
+#PLOT INDIVIDUAL FISH DETECTIONS
+################################
+
+df <- read_csv("csv/detections.csv")
+
+df %>% filter(scientific_name=="Gadus morhua") %>% 
+  ggplot(aes(x = as.Date(date, format=c("%Y-%m-%d")), y = as.factor(animal_id))) +
+  geom_point() +
+  theme_linedraw()+ggtitle("Tagged Atlantic cod detected")+
+  theme(axis.title.x = element_blank())+labs(y= "animal ID")+
+  scale_x_date(date_labels = "%b-%Y",date_breaks = "3 months")
+
+ggsave("plots/cod_individuals.png", device='png', dpi =300, width=10, height=6)
+
 #############################
 #HEAT MAP of species detected
 #############################
+
+detect <- read_csv("csv/df_arienne.csv")
 
 detect$date_hour <- format(detect$date_time,format='%Y-%m-%d %H')
 
